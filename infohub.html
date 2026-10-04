@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InfoHub - Knowledge Explorer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background-color: #0f172a;
+            color: #ffffff;
+            padding: 1.2rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #38bdf8;
+            cursor: pointer;
+        }
+
+        .logo span {
+            color: #ffffff;
+        }
+
+        /* Language Controls in Header */
+        .lang-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #1e293b;
+            padding: 6px 12px;
+            border-radius: 20px;
+            border: 1px solid #334155;
+        }
+
+        .lang-selector label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+        }
+
+        .lang-selector select {
+            background: transparent;
+            color: #38bdf8;
+            border: none;
+            outline: none;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .lang-selector select option {
+            background: #0f172a;
+            color: #ffffff;
+        }
+
+        /* Search Section */
+        .search-container {
+            max-width: 700px;
+            width: 90%;
+            margin: 2rem auto 1.5rem auto;
+            display: flex;
+            gap: 10px;
+        }
+
+        .search-container input {
+            flex: 1;
+            padding: 12px 18px;
+            font-size: 1rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 8px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-container input:focus {
+            border-color: #0284c7;
+        }
+
+        .search-container button {
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            background-color: #0284c7;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .search-container button:hover {
+            background-color: #0369a1;
+        }
+
+        /* Main Body */
+        main {
+            max-width: 850px;
+            width: 90%;
+            margin: 0 auto 3rem auto;
+            flex: 1;
+        }
+
+        .status-msg {
+            display: none;
+            text-align: center;
+            font-size: 1.1rem;
+            color: #64748b;
+            margin-top: 2rem;
+        }
+
+        /* Results List */
+        .results-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .result-item {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            cursor: pointer;
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .result-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+            border-color: #cbd5e1;
+        }
+
+        .result-item img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            background-color: #f1f5f9;
+            flex-shrink: 0;
+        }
+
+        .result-text {
+            flex: 1;
+        }
+
+        .result-item h3 {
+            color: #0284c7;
+            font-size: 1.2rem;
+            margin-bottom: 6px;
+        }
+
+        .result-item p {
+            color: #475569;
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+
+        /* Article Reader View */
+        .article-view {
+            display: none;
+            background: #ffffff;
+            padding: 25px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        .back-btn {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .back-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .article-header {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .article-image {
+            width: 100%;
+            max-height: 350px;
+            object-fit: cover;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .article-view h2 {
+            font-size: 2rem;
+            color: #0f172a;
+            border-bottom: 2px solid #f1f5f9;
+            padding-bottom: 10px;
+        }
+
+        .article-content {
+            line-height: 1.8;
+            color: #334155;
+            font-size: 1.05rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.2rem;
+            background-color: #0f172a;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo" id="logo">Info<span>Hub</span></div>
+        <div class="lang-selector">
+            <label for="langSelect">Language:</label>
+            <select id="langSelect">
+                <option value="en">English</option>
+                <option value="hi">हिंदी (Hindi)</option>
+            </select>
+        </div>
+    </header>
+
+    <div class="search-container">
+        <input type="text" id="searchInput" placeholder="Search topics (e.g., Space, Cars, Bharat)...">
+        <button id="searchBtn">Search</button>
+    </div>
+
+    <main>
+        <div id="statusMsg" class="status-msg">Searching...</div>
+        <div id="resultsList" class="results-list"></div>
+
+        <div id="articleView" class="article-view">
+            <button class="back-btn" id="backBtn">&larr; Back to Results</button>
+            <div class="article-header">
+                <h2 id="articleTitle"></h2>
+                <img id="articleImage" class="article-image" src="" alt="Topic Image">
+            </div>
+            <div id="articleContent" class="article-content"></div>
+        </div>
+    </main>
+
+    <footer>
+        &copy; InfoHub Knowledge Center. All rights reserved.
+    </footer>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const langSelect = document.getElementById('langSelect');
+        const statusMsg = document.getElementById('statusMsg');
+        const resultsList = document.getElementById('resultsList');
+        const articleView = document.getElementById('articleView');
+        const articleTitle = document.getElementById('articleTitle');
+        const articleImage = document.getElementById('articleImage');
+        const articleContent = document.getElementById('articleContent');
+        const backBtn = document.getElementById('backBtn');
+        const logo = document.getElementById('logo');
+
+        searchBtn.addEventListener('click', performSearch);
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') performSearch();
+        });
+        backBtn.addEventListener('click', showResults);
+        
+        logo.addEventListener('click', () => {
+            searchInput.value = '';
+            resultsList.innerHTML = '';
+            articleView.style.display = 'none';
+            setStatus('');
+        });
+
+        // Update placeholder based on language
+        langSelect.addEventListener('change', () => {
+            const lang = langSelect.value;
+            if (lang === 'hi') {
+                searchInput.placeholder = "विषय खोजें (उदा. अंतरिक्ष, भारत, विज्ञान)...";
+                searchBtn.textContent = "खोजें";
+                backBtn.innerHTML = "&larr; परिणामों पर वापस जाएं";
+            } else {
+                searchInput.placeholder = "Search topics (e.g., Space, Cars, Technology)...";
+                searchBtn.textContent = "Search";
+                backBtn.innerHTML = "&larr; Back to Results";
+            }
+            if (searchInput.value.trim()) {
+                performSearch();
+            }
+        });
+
+        async function performSearch() {
+            const query = searchInput.value.trim();
+            if (!query) return;
+
+            const lang = langSelect.value;
+            const loadingText = lang === 'hi' ? 'जानकारी खोजी जा रही है...' : 'Searching for articles...';
+            setStatus(loadingText);
+            
+            articleView.style.display = 'none';
+            resultsList.innerHTML = '';
+
+            // Dynamic API based on selected language (en / hi)
+            const url = `https://${lang}.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(query)}&gsrlimit=10&prop=pageimages|extracts&piprop=thumbnail&pithumbsize=200&exintro=1&explaintext=1&exsnippets=1&format=json&origin=*`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                setStatus('');
+                if (data.query && data.query.pages) {
+                    const pages = Object.values(data.query.pages);
+                    displayResults(pages);
+                } else {
+                    const noResultText = lang === 'hi' ? 'कोई परिणाम नहीं मिला। कृपया कुछ और खोजें।' : 'No results found. Try searching for something else.';
+                    setStatus(noResultText);
+                }
+            } catch (err) {
+                const errorText = lang === 'hi' ? 'डेटा लोड करने में त्रुटि हुई। कृपया अपना इंटरनेट कनेक्शन जांचें।' : 'Error fetching data. Please check your internet connection.';
+                setStatus(errorText);
+            }
+        }
+
+        function displayResults(results) {
+            resultsList.style.display = 'flex';
+            
+            results.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'result-item';
+                
+                const imgSrc = item.thumbnail ? item.thumbnail.source : 'https://via.placeholder.com/80?text=InfoHub';
+                const lang = langSelect.value;
+                const defaultSnippet = lang === 'hi' ? 'विवरण देखने के लिए क्लिक करें।' : 'Click to view details.';
+                const snippet = item.extract ? item.extract.substring(0, 120) + '...' : defaultSnippet;
+
+                card.innerHTML = `
+                    <img src="${imgSrc}" alt="${item.title}">
+                    <div class="result-text">
+                        <h3>${item.title}</h3>
+                        <p>${snippet}</p>
+                    </div>
+                `;
+
+                card.addEventListener('click', () => loadArticle(item.title));
+                resultsList.appendChild(card);
+            });
+        }
+
+        async function loadArticle(title) {
+            const lang = langSelect.value;
+            const loadingText = lang === 'hi' ? 'लेख लोड हो रहा है...' : 'Loading article details...';
+            setStatus(loadingText);
+            resultsList.style.display = 'none';
+
+            // REST API using selected language
+            const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                setStatus('');
+
+                if (data.extract) {
+                    articleTitle.textContent = data.title;
+                    articleContent.innerHTML = `<p>${data.extract}</p>`;
+
+                    // High quality image
+                    if (data.originalimage && data.originalimage.source) {
+                        articleImage.src = data.originalimage.source;
+                        articleImage.style.display = 'block';
+                    } else if (data.thumbnail && data.thumbnail.source) {
+                        articleImage.src = data.thumbnail.source;
+                        articleImage.style.display = 'block';
+                    } else {
+                        articleImage.style.display = 'none';
+                    }
+
+                    articleView.style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    const failText = lang === 'hi' ? 'पूरा लेख लोड नहीं किया जा सका।' : 'Could not load the full article.';
+                    setStatus(failText);
+                    resultsList.style.display = 'flex';
+                }
+            } catch (err) {
+                const failText = lang === 'hi' ? 'लेख का विवरण लोड करने में विफल।' : 'Failed to load article details.';
+                setStatus(failText);
+                resultsList.style.display = 'flex';
+            }
+        }
+
+        function setStatus(text) {
+            if (text) {
+                statusMsg.textContent = text;
+                statusMsg.style.display = 'block';
+            } else {
+                statusMsg.style.display = 'none';
+            }
+        }
+
+        function showResults() {
+            articleView.style.display = 'none';
+            resultsList.style.display = 'flex';
+        }
+    </script>
+</body>
+</html>

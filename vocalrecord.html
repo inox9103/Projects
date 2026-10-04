@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Recorder & Instant Downloader</title>
+    <style>
+        /* Light and clean CSS */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .recorder-card {
+            background: #ffffff;
+            padding: 30px 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+            font-size: 24px;
+        }
+
+        p.subtitle {
+            color: #7f8c8d;
+            font-size: 14px;
+            margin-bottom: 25px;
+        }
+
+        .timer {
+            font-size: 32px;
+            font-weight: bold;
+            color: #e74c3c;
+            margin: 15px 0;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, transform 0.1s ease;
+        }
+
+        button:active {
+            transform: scale(0.98);
+        }
+
+        #startBtn {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        #startBtn:hover {
+            background-color: #27ae60;
+        }
+
+        #stopBtn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        #stopBtn:hover {
+            background-color: #c0392b;
+        }
+
+        button:disabled {
+            background-color: #bdc3c7 !important;
+            cursor: not-allowed;
+        }
+
+        .status {
+            font-size: 14px;
+            font-weight: 500;
+            color: #34495e;
+            margin-top: 10px;
+        }
+
+        audio {
+            margin-top: 15px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="recorder-card">
+        <h2>Audio Recorder</h2>
+        <p class="subtitle">Record your voice and it will automatically download!</p>
+        
+        <div class="timer" id="timer">00:00</div>
+
+        <div class="btn-group">
+            <button id="startBtn">Record</button>
+            <button id="stopBtn" disabled>Stop & Save</button>
+        </div>
+
+        <div class="status" id="status">Click "Record" to start</div>
+
+        <audio id="audioPlayback" controls hidden></audio>
+    </div>
+
+    <script>
+        let mediaRecorder;
+        let audioChunks = [];
+        let timerInterval;
+        let seconds = 0;
+
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const statusText = document.getElementById('status');
+        const timerDisplay = document.getElementById('timer');
+        const audioPlayback = document.getElementById('audioPlayback');
+
+        // Format time as MM:SS
+        function updateTimer() {
+            seconds++;
+            let mins = Math.floor(seconds / 60);
+            let secs = seconds % 60;
+            timerDisplay.textContent = 
+                (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+        }
+
+        // Start Recording
+        startBtn.addEventListener('click', async () => {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+
+                mediaRecorder.ondataavailable = event => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = () => {
+                    // Create audio blob
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/mp3' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    
+                    // Show audio player
+                    audioPlayback.src = audioUrl;
+                    audioPlayback.hidden = false;
+
+                    // Instant Auto-Download
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = audioUrl;
+                    
+                    // Generate unique filename with timestamp
+                    const timeStamp = new Date().toISOString().replace(/[:.]/g, '-');
+                    downloadLink.download = `recording_${timeStamp}.mp3`;
+                    
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+
+                    statusText.textContent = "Recording saved and downloaded automatically!";
+                };
+
+                mediaRecorder.start();
+                
+                // UI & Timer updates
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                statusText.textContent = "Recording in progress...";
+                seconds = 0;
+                timerDisplay.textContent = "00:00";
+                timerInterval = setInterval(updateTimer, 1000);
+
+            } catch (err) {
+                alert("Microphone access denied or not supported by your browser.");
+                console.error(err);
+            }
+        });
+
+        // Stop Recording
+        stopBtn.addEventListener('click', () => {
+            mediaRecorder.stop();
+            clearInterval(timerInterval);
+            
+            // Stop microphone stream tracks
+            mediaRecorder.stream.getTracks().forEach(track => track.stop());
+
+            startBtn.disabled = false;
+            stopBtn.disabled = true;
+        });
+    </script>
+
+</body>
+</html>
